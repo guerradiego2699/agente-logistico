@@ -1,0 +1,4 @@
+google-genai>=2.33,<3
+python-dotenv>=1.0
+# Solo para correr los tests
+pytest>=8
