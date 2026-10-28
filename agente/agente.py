@@ -4,7 +4,7 @@ import logging
 
 from google.genai import errors, types
 
-from .cliente_llm import ModeloLLM
+from .cliente_llm import ModeloLLM, es_cuota_diaria
 from .herramientas import EjecutorHerramientas
 
 log = logging.getLogger("sistema")
@@ -73,9 +73,13 @@ class AgenteLogistico:
             )
         except errors.APIError as e:
             log.error("Error de la API de Gemini: %s %s", e.code, e.status)
-            return self._cerrar_turno_fallido(
-                inicio_turno, hubo_efectos, f"No pude contactar al modelo ({e.code}). Intenta de nuevo."
+            aviso = (
+                "Se agotó la cuota diaria gratuita de Gemini para este modelo; se renueva mañana. "
+                "Puedes cambiar GEMINI_MODEL en .env (p. ej. gemini-3.5-flash-lite)."
+                if es_cuota_diaria(e)
+                else f"No pude contactar al modelo ({e.code}). Intenta de nuevo."
             )
+            return self._cerrar_turno_fallido(inicio_turno, hubo_efectos, aviso)
         except Exception:  # p. ej. caída de red (httpx) o respuesta inesperada del SDK
             log.exception("Fallo inesperado durante el turno")
             return self._cerrar_turno_fallido(

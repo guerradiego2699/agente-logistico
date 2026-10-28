@@ -22,6 +22,11 @@ class ModeloLLM(Protocol):
     def generar(self, historial: list[types.Content]) -> types.GenerateContentResponse: ...
 
 
+def es_cuota_diaria(error: errors.APIError) -> bool:
+    """El free tier también limita solicitudes por día; esperar unos segundos no sirve para esa."""
+    return error.code == 429 and "PerDay" in str(error.details)
+
+
 def _segundos_sugeridos(error: errors.APIError) -> float | None:
     """Lee el RetryInfo.retryDelay (p. ej. "27s") que Google adjunta a los 429."""
     detalles = (error.details or {}).get("error", {}).get("details", []) if isinstance(error.details, dict) else []
@@ -63,7 +68,7 @@ class GeminiLLM:
                     config=self._config,
                 )
             except errors.APIError as e:
-                if e.code not in CODIGOS_REINTENTABLES or intento == self._max_intentos:
+                if e.code not in CODIGOS_REINTENTABLES or es_cuota_diaria(e) or intento == self._max_intentos:
                     raise
                 espera = min(_segundos_sugeridos(e) or 2.0**intento, MAX_ESPERA_S)
                 log.info("Gemini respondió %s (%s); reintento %d en %.0fs", e.code, e.status, intento, espera)

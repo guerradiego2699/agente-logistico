@@ -57,6 +57,22 @@ def test_se_rinde_tras_max_intentos():
     assert models.llamadas == 2
 
 
+def test_no_reintenta_cuota_diaria():
+    diaria = {
+        "error": {
+            "code": 429,
+            "status": "RESOURCE_EXHAUSTED",
+            "message": "quota",
+            "details": [{"quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier"}],
+        }
+    }
+    llm, models, esperas = crear_llm([errors.APIError(429, diaria)])
+    with pytest.raises(errors.APIError):
+        llm.generar([])
+    assert models.llamadas == 1
+    assert esperas == []
+
+
 def test_no_reintenta_errores_del_cliente():
     err = errors.APIError(400, {"error": {"code": 400, "status": "INVALID_ARGUMENT", "message": "x"}})
     llm, models, _ = crear_llm([err])
