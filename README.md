@@ -30,6 +30,13 @@ Escenario de prueba: escribe `Necesitamos equipar a 10 nuevos empleados con lapt
 consulta `consultar_stock("laptops")`, calcula el déficit, propone una orden solo por el faltante
 y, si respondes que sí, llama a `emitir_orden_compra` (verás el log `[SISTEMA] Orden de compra ...`).
 
+## Demo web
+
+El mismo agente (prompt, tools y validaciones portados a TypeScript con `@google/genai`) corre en
+<https://plcampus.com/es/lab>, una sección privada con login. Allí se ve el chat, una consola con
+cada llamada a herramientas y el inventario de la sesión. Corre en funciones serverless de Vercel;
+la API key nunca llega al navegador. Credenciales de acceso a pedido.
+
 ## Arquitectura
 
 | Archivo | Responsabilidad |
